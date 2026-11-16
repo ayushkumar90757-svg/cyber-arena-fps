@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CYBER ARENA: ZERO HOUR - 3D Arena FPS</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Local Three.js with fallback to CDN -->
+    <script src="three.min.js"></script>
+    <script>
+        if (typeof THREE === 'undefined') {
+            document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>');
+        }
+    </script>
+</head>
+<body>
+    <!-- 3D Canvas Container -->
+    <div id="game-container"></div>
+
+    <!-- Start Menu Screen -->
+    <div id="start-menu" class="menu-overlay">
+        <div class="menu-card">
+            <h1 class="game-title">Cyber Arena</h1>
+            <div class="game-subtitle">// ZERO HOUR // TACTICAL ARENA FPS</div>
+
+            <!-- Settings -->
+            <div class="settings-grid">
+                <div class="setting-item">
+                    <label for="select-score">Target Score (Kills)</label>
+                    <select id="select-score">
+                        <option value="10">10 Kills (Quick Match)</option>
+                        <option value="15" selected>15 Kills (Standard)</option>
+                        <option value="25">25 Kills (Extended)</option>
+                        <option value="40">40 Kills (Endurance)</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label for="select-bots">Combat Bots</label>
+                    <select id="select-bots">
+                        <option value="3">3 Bots (Relaxed)</option>
+                        <option value="5" selected>5 Bots (Balanced)</option>
+                        <option value="8">8 Bots (Chaotic Mayhem)</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label for="select-difficulty">AI Difficulty</label>
+                    <select id="select-difficulty">
+                        <option value="easy">Cadet (Easy)</option>
+                        <option value="medium" selected>Operator (Medium)</option>
+                        <option value="hard">Cyber-Spec (Hard)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Weapon Showcase -->
+            <div class="weapons-showcase">
+                <div class="weapon-card">
+                    <div class="w-badge">SLOT 1 // PRIMARY</div>
+                    <div class="w-name">Viper AR-47</div>
+                    <div class="w-stat"><span>DAMAGE</span><span>26 (x2.5 Head)</span></div>
+                    <div class="w-bar"><div class="w-bar-fill" style="width: 60%"></div></div>
+                    <div class="w-stat"><span>FIRE RATE</span><span>600 RPM</span></div>
+                    <div class="w-bar"><div class="w-bar-fill" style="width: 80%"></div></div>
+                    <div class="w-stat"><span>MAGAZINE</span><span>30 Rounds</span></div>
+                    <div class="w-bar"><div class="w-bar-fill" style="width: 75%"></div></div>
+                </div>
+
+                <div class="weapon-card">
+                    <div class="w-badge">SLOT 2 // CQC</div>
+                    <div class="w-name">Bulldog 12G</div>
+                    <div class="w-stat"><span>DAMAGE</span><span>8x15 (120 Max)</span></div>
+                    <div class="w-bar"><div class="w-bar-fill" style="width: 95%"></div></div>
+                    <div class="w-stat"><span>FIRE RATE</span><span>Pump-Action</span></div>
+                    <div class="w-bar"><div class="w-bar-fill" style="width: 30%"></div></div>
+                    <div class="w-stat"><span>MAGAZINE</span><span>8 Shells</span></div>
+                    <div class="w-bar"><div class="w-bar-fill" style="width: 40%"></div></div>
+                </div>
+
+                <div class="weapon-card">
+                    <div class="w-badge">SLOT 3 // PRECISION</div>
+                    <div class="w-name">Shadow .50 Cal</div>
+                    <div class="w-stat"><span>DAMAGE</span><span>95 (285 Head)</span></div>
+                    <div class="w-bar"><div class="w-bar-fill" style="width: 100%"></div></div>
+                    <div class="w-stat"><span>FIRE RATE</span><span>Bolt-Action</span></div>
+                    <div class="w-bar"><div class="w-bar-fill" style="width: 20%"></div></div>
+                    <div class="w-stat"><span>MAGAZINE</span><span>5 Rounds</span></div>
+                    <div class="w-bar"><div class="w-bar-fill" style="width: 25%"></div></div>
+                </div>
+            </div>
+
+            <!-- Controls Guide -->
+            <div class="controls-guide">
+                <span class="key-pill"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</span>
+                <span class="key-pill"><kbd>SHIFT</kbd> Sprint</span>
+                <span class="key-pill"><kbd>SPACE</kbd> Jump</span>
+                <span class="key-pill"><kbd>LMB</kbd> Shoot</span>
+                <span class="key-pill"><kbd>RMB</kbd> Aim Down Sights</span>
+                <span class="key-pill"><kbd>R</kbd> Reload</span>
+                <span class="key-pill"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> Weapons</span>
+                <span class="key-pill"><kbd>TAB</kbd> Scoreboard</span>
+                <span class="key-pill"><kbd>P</kbd> Pause</span>
+            </div>
+
+            <!-- Launch Button -->
+            <button id="btn-start-game" class="btn-primary">Enter Arena</button>
+        </div>
+    </div>
+
+    <!-- In-Game HUD -->
+    <div id="hud" style="display: none;">
+        <!-- Top Left: Radar Minimap -->
+        <div class="radar-hub">
+            <canvas id="radar-canvas" width="130" height="130"></canvas>
+        </div>
+
+        <!-- Top Center: Match Objective -->
+        <div class="objective-hub">
+            <span id="match-score">SCORE: 0 / 15</span>
+        </div>
+
+        <!-- Top Right: Live Kill Feed -->
+        <div id="kill-feed"></div>
+
+        <!-- Center Crosshair -->
+        <div id="crosshair">
+            <div class="ch-dot"></div>
+            <div class="ch-prong ch-top"></div>
+            <div class="ch-prong ch-bottom"></div>
+            <div class="ch-prong ch-left"></div>
+            <div class="ch-prong ch-right"></div>
+        </div>
+
+        <!-- Center Hit Marker -->
+        <div id="hit-marker" class="hit-marker">
+            <div class="hm-tick hm-top"></div>
+            <div class="hm-tick hm-bottom"></div>
+            <div class="hm-tick hm-left"></div>
+            <div class="hm-tick hm-right"></div>
+        </div>
+
+        <!-- Directional Damage Warning Arc -->
+        <div id="damage-indicator"></div>
+
+        <!-- Low Health Screen Vignette -->
+        <div id="low-health-vignette"></div>
+
+        <!-- Bottom Left: Vitals Hub -->
+        <div class="vitals-hub">
+            <div class="vital-row">
+                <div class="vital-header">
+                    <span class="hp-color">HEALTH</span>
+                    <span id="hp-text">100 / 100</span>
+                </div>
+                <div class="vital-bar">
+                    <div id="hp-fill" style="width: 100%"></div>
+                </div>
+            </div>
+            <div class="vital-row">
+                <div class="vital-header">
+                    <span class="armor-color">SHIELD / ARMOR</span>
+                    <span id="armor-text">50 / 50</span>
+                </div>
+                <div class="vital-bar">
+                    <div id="armor-fill" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Right: Armory Hub -->
+        <div class="armory-hub">
+            <div class="weapon-title-row">
+                <div id="weapon-mode">[AUTO]</div>
+                <div id="weapon-name">Viper AR-47</div>
+            </div>
+            <div class="ammo-counter">
+                <span id="mag-ammo">30</span>
+                <span id="reserve-ammo">/ 150</span>
+            </div>
+            <div id="reload-container">
+                <div id="reload-bar"></div>
+            </div>
+            <div class="weapon-slots-row">
+                <div id="slot-1" class="slot-item active">1: AR</div>
+                <div id="slot-2" class="slot-item">2: SHOTGUN</div>
+                <div id="slot-3" class="slot-item">3: SNIPER</div>
+            </div>
+        </div>
+
+        <!-- Mobile & Touch Screen On-Screen Controls (Android APK) -->
+        <div id="mobile-controls">
+            <div id="touch-aim-zone"></div>
+            <div id="touch-joystick-zone">
+                <div id="touch-joystick-knob"></div>
+            </div>
+            <div id="touch-fire-btn" class="touch-btn" title="Fire">🎯</div>
+            <div id="touch-ads-btn" class="touch-btn" title="ADS">🔍</div>
+            <div id="touch-jump-btn" class="touch-btn" title="Jump">🦘</div>
+            <div id="touch-reload-btn" class="touch-btn" title="Reload">🔄</div>
+            <div id="touch-switch-btn" class="touch-btn" title="Switch">🔫</div>
+        </div>
+    </div>
+
+    <!-- Sniper Scope Overlay -->
+    <div id="sniper-scope">
+        <div class="scope-vignette"></div>
+        <div class="scope-lines">
+            <div class="scope-h-line"></div>
+            <div class="scope-v-line"></div>
+            <div class="scope-center-circle"></div>
+        </div>
+    </div>
+
+    <!-- Live Scoreboard Overlay (Tab) -->
+    <div id="scoreboard">
+        <div class="scoreboard-title">// MATCH LEADERBOARD //</div>
+        <table class="scoreboard-table">
+            <thead>
+                <tr>
+                    <th>RANK</th>
+                    <th>OPERATOR</th>
+                    <th>KILLS</th>
+                    <th>DEATHS</th>
+                    <th>K/D</th>
+                    <th>SCORE</th>
+                </tr>
+            </thead>
+            <tbody id="scoreboard-body">
+                <!-- Dynamically generated rows -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pause Menu -->
+    <div id="pause-menu" class="menu-overlay" style="display: none;">
+        <div class="menu-card" style="max-width: 480px;">
+            <h2 class="game-title" style="font-size: 32px;">Game Paused</h2>
+            <div class="game-subtitle">// SYSTEM STANDBY //</div>
+
+            <div class="settings-grid" style="grid-template-columns: 1fr; margin-bottom: 20px;">
+                <div class="setting-item">
+                    <label for="sens-slider">Mouse Sensitivity</label>
+                    <input id="sens-slider" type="range" min="1.0" max="5.0" step="0.2" value="2.2">
+                </div>
+                <button id="sound-toggle" class="btn-secondary" style="width: 100%; margin-top: 6px;">🔊 Sound: ON</button>
+            </div>
+
+            <div class="button-stack">
+                <button id="btn-resume" class="btn-primary">Resume Match</button>
+                <button id="btn-restart" class="btn-secondary">Restart</button>
+                <button id="btn-menu" class="btn-secondary">Main Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over / Victory Menu -->
+    <div id="game-over-menu" class="menu-overlay" style="display: none;">
+        <div class="menu-card" style="max-width: 580px;">
+            <h2 id="go-title" class="game-title">Victory Royale!</h2>
+            <div class="game-subtitle">// MATCH PERFORMANCE REPORT //</div>
+
+            <div id="go-summary" class="match-stats-summary">
+                <!-- Dynamic stat boxes -->
+            </div>
+
+            <div class="button-stack">
+                <button id="btn-play-again" class="btn-primary">Play Again</button>
+                <button id="btn-go-menu" class="btn-secondary">Main Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Scripts -->
+    <script src="js/textures.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/vfx.js"></script>
+    <script src="js/weapons.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/bot.js"></script>
+    <script src="js/botManager.js"></script>
+    <script src="js/arena.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
